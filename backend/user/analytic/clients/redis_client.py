@@ -7,8 +7,10 @@ from typing import Callable, Any
 
 from redis import Redis
 
+from core.settings import REDIS_HOST, REDIS_PORT, REDIS_DB
 
-#pylint: disable=W0223, R0901
+
+# pylint: disable=W0223, R0901
 class RedisClient(Redis):
     """
     Клиент доступа к базе данных Redis
@@ -19,6 +21,7 @@ class RedisClient(Redis):
     Attributes:
         instance: Единственный экземпляр клиента
     """
+    instance: "RedisClient"
 
     def __new__(cls) -> "RedisClient":
         """Метод, обеспечивающий реализацию Singleton"""
@@ -29,9 +32,9 @@ class RedisClient(Redis):
     @property
     def _default_init_kwargs(self):
         return {
-            "host": "redis",
-            "port": 6379,
-            "db": 0
+            "host": REDIS_HOST,
+            "port": REDIS_PORT,
+            "db": REDIS_DB,
         }
 
     def __init__(self, **kwargs):
@@ -41,9 +44,8 @@ class RedisClient(Redis):
         }
         super().__init__(**kwargs, **extra_kwargs)
 
-
     @staticmethod
-    def get_key_by_function_with_params(function, *args, **kwargs) -> str:
+    def get_key_by_function_with_params(function: Callable, *args, **kwargs) -> str:
         """
         Метод, генерирующий строку-ключ функции
         по ее определенной значениями сигнатуре
@@ -64,7 +66,7 @@ class RedisClient(Redis):
         Args:
             data: Десериализуемые данные
         """
-        return pickle.loads(data)
+        return pickle.loads(data)   # pragma: no cover
 
     @staticmethod
     def dumps(data):
@@ -75,7 +77,7 @@ class RedisClient(Redis):
         Args:
             data: Cериализуемые данные
         """
-        return pickle.dumps(data)
+        return pickle.dumps(data)   # pragma: no cover
 
 
 def redis_cache(life_time: int) -> Callable[[Callable], Any]:

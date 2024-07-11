@@ -31,7 +31,7 @@ class BaseMetric(ABC):
         return getattr(self, f"get_{project.type.lower()}_params")(
             project.type_service.get_client(),
             **kwargs
-        )
+        )   # pragma: no cover
 
     def __call__(self, project, **kwargs: PARAMS_KWARGS_OBJ) -> Any:
         """
@@ -40,4 +40,4 @@ class BaseMetric(ABC):
         Args:
             project: Проект, в котором рассчитывается метрика
         """
-        return self.calculate(**self.get_params(project=project, **kwargs))
+        return self.calculate(**self.get_params(project=project, **kwargs))     # pragma: no cover

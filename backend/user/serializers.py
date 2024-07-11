@@ -6,7 +6,7 @@ from user.models import Employee, User, Project
 
 class EmployeeSerializer(serializers.ModelSerializer):
     """Сериализатор сотрудника"""
-    #pylint: disable=C0115
+    # pylint: disable=C0115
     class Meta:
         model = Employee
         fields = '__all__'
@@ -14,7 +14,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     """Сериализатор проекта"""
-    #pylint: disable=C0115
+    # pylint: disable=C0115
     class Meta:
         model = Project
         fields = '__all__'
@@ -22,7 +22,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор пользователя"""
-    #pylint: disable=C0115
+    # pylint: disable=C0115
     class Meta:
         model = User
         fields = ["username", "password"]

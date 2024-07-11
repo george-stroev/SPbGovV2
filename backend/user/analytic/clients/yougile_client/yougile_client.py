@@ -76,7 +76,7 @@ class YouGileClient(BaseClient):
         ).json()
         return json
 
-    #pylint: disable=R0913
+    # pylint: disable=R0913
     def get_tasks(
             self,
             column_id: str = "",

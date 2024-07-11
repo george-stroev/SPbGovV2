@@ -38,7 +38,7 @@ class CountOfCompleteTasks(BaseMetric):
         tasks = client.get_tasks().content
         return {"employee": employee, "tasks": tasks}
 
-    #pylint: disable=W0221
+    # pylint: disable=W0221
     def calculate(self, employee: Employee, tasks) -> int:
         """
         Метод расчета метрики количества выполненных задач

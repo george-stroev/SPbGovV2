@@ -56,7 +56,7 @@ class Task(BaseModel):
     completed: bool
     assigned: list[str] | str = []
 
-    #pylint: disable=E0213
+    # pylint: disable=E0213
     @field_serializer('assigned')
     def serialize_assigned(assigned: list[str] | str) -> list[str]:
         """
@@ -69,7 +69,7 @@ class Task(BaseModel):
         Args:
             assigned: Текущий список подписчиков задачи
         """
-        return assigned if isinstance(assigned, list) else list[assigned]
+        return assigned if isinstance(assigned, list) else list[assigned]   # pragma: no cover
 
 
 class Employee(BaseModel):

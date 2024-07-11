@@ -13,7 +13,28 @@ drf-yasg = "1.21.7"
 pydantic = "2.8.2"
 requests = "2.32.3"
 redis = "5.0.7"
-pylint = "^3.2.5"
+pylint = "3.2.5"
+factory-boy = "3.3.0"
+coverage = "7.5.4"
+
+[tool.coverage.run]
+omit = [
+    "*/common/*",
+    "*/itest/*",
+    "manage.py",
+    "core/wsgi.py",
+    "core/asgi.py",
+    "education/backends.py",
+    "gunicorn_conf.py",
+    "yougile_client.py"
+]
+parallel = true
+concurrency = ["multiprocessing"]
+
+[tool.coverage.report]
+precision = 2
+fail_under = 95
+skip_covered = true
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,5 +1,4 @@
 """Модуль, содержащий viewsers данного проекта"""
-from django.contrib.auth import authenticate
 from rest_framework import viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
@@ -39,12 +38,11 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=False, permission_classes=[AllowAny])
     def login(self, request):
         """Конечная точка входа в систему"""
-        user = authenticate(
-            request,
-            username=request.data['username'],
-            password=request.data['password'],
-        )
-        if user:
+        try:
+            user = User.objects.get(
+                username=request.data['username'],
+                password=request.data['password'],
+            )
             # pylint: disable=E1101
             token, _ = Token.objects.get_or_create(user=user)
             return Response({
@@ -52,7 +50,8 @@ class UserViewSet(viewsets.ModelViewSet):
                 'email': user.email,
                 'username': user.username,
             })
-        return Response({'error': 'Invalid credentials'}, status=401)
+        except User.DoesNotExist:   # pylint: disable=E1101
+            return Response({'error': 'Invalid credentials'}, status=401)
 
     @action(methods=['post'], detail=False, permission_classes=[IsAuthenticated])
     def logout(self, request):

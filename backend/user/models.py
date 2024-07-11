@@ -3,9 +3,12 @@
 определяющие таблицы базы данных
 """
 from abc import ABC, abstractmethod
-from typing import Any
+from importlib.resources import _
+from typing import Any, cast
 
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.utils import timezone
 from django.db import models
 
 from user.analytic.clients.base_client import BaseClient
@@ -29,6 +32,43 @@ class ExplicitModel(models.Model):
 
 class User(AbstractUser):
     """Модель пользователя"""
+
+    last_login = models.DateTimeField(_("Дата последнего посещения"), blank=True, null=True)
+
+    username_validator = UnicodeUsernameValidator()
+    username = models.CharField(
+        _("Логин"),
+        max_length=150,
+        unique=True,
+        help_text=_("Требуется не более 150 символов. Только буквы, цифры и @/./+/-/_."),
+        validators=[username_validator],
+        error_messages={
+            "unique": _("Это имя пользователя уже существует."),
+        },
+    )
+    password = models.CharField(_("Пароль"), max_length=128)
+    first_name = models.CharField(_("Имя"), max_length=150, blank=True)
+    last_name = models.CharField(_("Фамилия"), max_length=150, blank=True)
+    email = models.EmailField(blank=True)
+    is_staff = models.BooleanField(
+        _("Администраторские права"),
+        default=False,
+        help_text=_("Определяет, может ли пользователь войти на этот административный сайт."),
+    )
+    is_active = models.BooleanField(
+        _("active"),
+        default=True,
+        help_text=_(
+            "Определяет, следует ли считать этого пользователя активным. "
+            "Снимите этот флажок вместо удаления учетных записей."
+        ),
+    )
+    date_joined = models.DateTimeField(_("Дата регистрации"), default=timezone.now)
+
+    # pylint: disable=missing-docstring
+    class Meta:
+        verbose_name = _("Пользователь")
+        verbose_name_plural = _("Пользователи")
 
 
 class Services(models.TextChoices):
@@ -77,7 +117,7 @@ class YouGileTypeService(BaseProjectTypeService):
     def update_employers(self):
         """Метод обновления сотрудников в текущем проекте"""
         next_ = True
-        client = self.get_client()
+        client = cast(YouGileClient, self.get_client())
         existed_employers_objs = Employee.objects\
             .filter(project__id=self.project.id)\
             .in_bulk(field_name='ref_id')
@@ -120,9 +160,22 @@ class Project(ExplicitModel):
     Модель, отвечающая за хранение информации
     о проектах, с которыми работает пользователь
     """
-    type: str = models.CharField(max_length=16, choices=Services)
-    token: str = models.CharField(max_length=255)
-    user: "user.User" = models.ForeignKey('user.User', on_delete=models.PROTECT)
+    type: str = models.CharField(
+        _("Тип клиента"), max_length=16, choices=Services,
+        help_text=_("Название сервиса, который будет использоваться для аналитики"),
+    )
+    token: str = models.CharField(
+        _("Ключ"), max_length=255,
+        help_text=_(
+            "Ключ доступа, по которому можно получить "
+            "необходимые данные из сервиса "
+            "(Нужно получить из сервиса)"
+        ),
+    )
+    user: "user.User" = models.ForeignKey(
+        'user.User', verbose_name=_("Пользователь"), on_delete=models.PROTECT,
+        help_text=_("Пользователь, которому принадлежат права доступа к проекту"),
+    )
 
     @property
     def type_service(self) -> BaseProjectTypeService:
@@ -131,10 +184,26 @@ class Project(ExplicitModel):
             Services.YOUGILE: YouGileTypeService
         }[self.type](self)
 
+    # pylint: disable=missing-docstring
+    class Meta:
+        verbose_name = _("Проект")
+        verbose_name_plural = _("Проекты")
+
 
 class Employee(ExplicitModel):
     """Модель, отвечающая за хранение информации по сотрудникам проекта"""
-    ref_id: str = models.CharField(max_length=255, unique=True)
+    ref_id: str = models.CharField(
+        _("ID объекта в сервисе"), max_length=255, unique=True,
+        help_text=_("Уникальный идентификатор объекта, используемый сервисом для его определения"),
+    )
     email: str = models.EmailField()
-    name: str = models.CharField(max_length=255)
-    project: 'user.Project' = models.ForeignKey('user.Project', on_delete=models.PROTECT)
+    name: str = models.CharField(_("Имя"), max_length=255)
+    project: 'user.Project' = models.ForeignKey(
+        'user.Project', verbose_name=_("Рабочий проект"), on_delete=models.PROTECT,
+        help_text=_("Проект, в котором работает сотрудник"),
+    )
+
+    # pylint: disable=missing-docstring
+    class Meta:
+        verbose_name = _("Сотрудник")
+        verbose_name_plural = _("Сотрудники")
